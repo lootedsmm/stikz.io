@@ -591,6 +591,7 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
+    ctx.globalAlpha = 1;
   }
 
   function renderTrails() {
@@ -756,6 +757,7 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
 
   bindInput();
   resizeCanvas();
+  document.documentElement.style.setProperty("--ui-accent", state.settings.uiColor);
   requestAnimationFrame((t) => {
     state.lastTime = t;
     tick(t);

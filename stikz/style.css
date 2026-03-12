@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --ui-accent: #64e5ff;
 }
 
 * { box-sizing: border-box; }

@@ -174,7 +174,7 @@
 
     if (state.player.alive && state.player !== bot) {
       const d = U.distance(bot.x, bot.y, state.player.x, state.player.y);
-      best = { type: "player", id: "player", dist: d };
+      best = { type: "player", id: "player", x: state.player.x, y: state.player.y, dist: d };
     }
 
     for (const other of state.bots) {
