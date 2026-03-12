@@ -7,10 +7,27 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="game-shell">
+  <div id="titleScreen">
+    <div class="title-card">
+      <h1>STIKZ</h1>
+      <label for="playerNameInput">Name:</label>
+      <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name" />
+
+      <fieldset>
+        <legend>Mode:</legend>
+        <label><input type="radio" name="mode" value="classic" checked /> Classic</label>
+        <label><input type="radio" name="mode" value="pinpoint" /> Pinpoint</label>
+      </fieldset>
+
+      <button id="playButton" type="button">Play</button>
+    </div>
+  </div>
+
+  <div id="game-shell" class="hidden">
     <canvas id="gameCanvas"></canvas>
     <div id="hud">
-      <div><strong>Score:</strong> <span id="scoreValue">0</span></div>
+      <div><strong>Name:</strong> <span id="nameValue">You</span></div>
+      <div><strong>Mode:</strong> <span id="modeValue">Classic</span></div>
       <div><strong>Kills:</strong> <span id="killsValue">0</span></div>
       <div><strong>Spear Length:</strong> <span id="spearValue">0</span></div>
     </div>
@@ -18,7 +35,7 @@
       <h3>Leaderboard</h3>
       <ol id="leaderboardList"></ol>
     </div>
-    <div id="help">WASD to move • Aim with mouse • Touch enemies with spear tip</div>
+    <div id="help">WASD to move • Aim with mouse • Spear anyone in Classic, tip-only in Pinpoint</div>
   </div>
 
   <script src="utils.js"></script>

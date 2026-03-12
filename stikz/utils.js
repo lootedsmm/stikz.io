@@ -41,6 +41,39 @@
     };
   }
 
+  function pointInRect(px, py, rect) {
+    return px >= rect.left && px <= rect.right && py >= rect.top && py <= rect.bottom;
+  }
+
+  function lineIntersectsRect(x1, y1, x2, y2, rect) {
+    // Liang-Barsky line clipping algorithm.
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const p = [-dx, dx, -dy, dy];
+    const q = [x1 - rect.left, rect.right - x1, y1 - rect.top, rect.bottom - y1];
+
+    let t0 = 0;
+    let t1 = 1;
+
+    for (let i = 0; i < 4; i++) {
+      if (p[i] === 0) {
+        if (q[i] < 0) return false;
+        continue;
+      }
+
+      const t = q[i] / p[i];
+      if (p[i] < 0) {
+        t0 = Math.max(t0, t);
+      } else {
+        t1 = Math.min(t1, t);
+      }
+
+      if (t0 > t1) return false;
+    }
+
+    return true;
+  }
+
   window.StikzUtils = {
     clamp,
     lerp,
@@ -50,5 +83,7 @@
     normalize,
     limitVector,
     randomPosition,
+    pointInRect,
+    lineIntersectsRect,
   };
 })();
