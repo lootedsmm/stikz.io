@@ -8,18 +8,40 @@
 </head>
 <body>
   <div id="titleScreen">
-    <div class="title-card">
-      <h1>STIKZ</h1>
-      <label for="playerNameInput">Name:</label>
-      <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name" />
+    <div class="title-layout">
+      <aside class="customization-card">
+        <h2>Customize</h2>
+        <label for="uiColorInput">UI Color</label>
+        <input id="uiColorInput" type="color" value="#64e5ff" />
 
-      <fieldset>
-        <legend>Mode:</legend>
-        <label><input type="radio" name="mode" value="classic" checked /> Classic</label>
-        <label><input type="radio" name="mode" value="pinpoint" /> Pinpoint</label>
-      </fieldset>
+        <label for="hairStyleSelect">Hair Style</label>
+        <select id="hairStyleSelect">
+          <option value="short">Short</option>
+          <option value="messy">Messy</option>
+          <option value="spiky">Spiky</option>
+          <option value="bald">Bald</option>
+        </select>
 
-      <button id="playButton" type="button">Play</button>
+        <fieldset>
+          <legend>Spear Hand</legend>
+          <label><input type="radio" name="handedness" value="right" checked /> Right-handed</label>
+          <label><input type="radio" name="handedness" value="left" /> Left-handed</label>
+        </fieldset>
+      </aside>
+
+      <div class="title-card">
+        <h1>STIKZ</h1>
+        <label for="playerNameInput">Name:</label>
+        <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name" />
+
+        <fieldset>
+          <legend>Mode:</legend>
+          <label><input type="radio" name="mode" value="classic" checked /> Classic</label>
+          <label><input type="radio" name="mode" value="pinpoint" /> Pinpoint</label>
+        </fieldset>
+
+        <button id="playButton" type="button">Play</button>
+      </div>
     </div>
   </div>
 
@@ -35,7 +57,28 @@
       <h3>Leaderboard</h3>
       <ol id="leaderboardList"></ol>
     </div>
-    <div id="help">WASD to move • Aim with mouse • Spear anyone in Classic, tip-only in Pinpoint</div>
+
+    <div id="boostHud">
+      <div id="boostMeter"><div id="boostFill"></div></div>
+      <div id="helpLink" role="button" tabindex="0">Help</div>
+    </div>
+
+    <div id="helpOverlay" class="hidden" role="dialog" aria-modal="true">
+      <div class="help-card">
+        <h3>How to Play</h3>
+        <ul>
+          <li><strong>Move:</strong> WASD</li>
+          <li><strong>Aim:</strong> Mouse</li>
+          <li><strong>Boost:</strong> Hold Left Click or Spacebar</li>
+          <li><strong>Natural Orbs:</strong> Bright colors, refill boost energy only</li>
+          <li><strong>Blood Orbs:</strong> Red kill drops, refill boost and grow spear</li>
+          <li><strong>Classic:</strong> Any spear contact deals damage</li>
+          <li><strong>Pinpoint:</strong> Only spear tip contact deals damage</li>
+          <li><strong>Kills:</strong> Defeat players/bots to score and get stronger</li>
+        </ul>
+        <button id="closeHelpButton" type="button">Close</button>
+      </div>
+    </div>
   </div>
 
   <script src="utils.js"></script>
