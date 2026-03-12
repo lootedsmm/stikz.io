@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --ui-accent: #64e5ff;
 }
 
 * {
@@ -11,7 +12,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  background: #0b0f1a;
+  background: #0a1510;
   font-family: Arial, Helvetica, sans-serif;
   overflow: hidden;
 }
@@ -25,19 +26,30 @@ body {
   inset: 0;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at center, #10192c 0%, #090d16 100%);
-  color: #c8f4ff;
+  background: radial-gradient(circle at center, #152f20 0%, #09140d 100%);
+  color: #d6ffe6;
 }
 
-.title-card {
+.title-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.title-card,
+.customization-card {
   width: min(360px, 90vw);
-  background: rgba(6, 10, 18, 0.82);
-  border: 1px solid rgba(118, 181, 255, 0.4);
+  background: rgba(6, 18, 10, 0.86);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 55%, white 10%);
   border-radius: 14px;
   padding: 18px;
   display: grid;
   gap: 10px;
-  box-shadow: 0 0 24px rgba(90, 202, 255, 0.2);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--ui-accent) 30%, transparent);
+}
+
+.customization-card {
+  width: min(250px, 90vw);
 }
 
 .title-card h1 {
@@ -46,28 +58,42 @@ body {
   letter-spacing: 6px;
 }
 
-.title-card input[type="text"] {
+.customization-card h2 {
+  margin: 0 0 4px;
+  letter-spacing: 1px;
+}
+
+.title-card input[type="text"],
+.customization-card select,
+.customization-card input[type="color"] {
   width: 100%;
-  background: rgba(8, 15, 24, 0.9);
-  border: 1px solid rgba(118, 181, 255, 0.35);
-  color: #dbf8ff;
+  background: rgba(8, 20, 12, 0.9);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
+  color: #ecfff2;
   border-radius: 8px;
   padding: 10px;
 }
 
-.title-card fieldset {
+.customization-card input[type="color"] {
+  min-height: 40px;
+  padding: 4px;
+}
+
+.title-card fieldset,
+.customization-card fieldset {
   margin: 4px 0 0;
-  border: 1px solid rgba(118, 181, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
   border-radius: 8px;
   display: grid;
   gap: 6px;
 }
 
-.title-card button {
-  border: 1px solid rgba(118, 181, 255, 0.45);
+.title-card button,
+.help-card button {
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 55%, transparent);
   border-radius: 8px;
-  background: linear-gradient(180deg, #123253 0%, #0d233c 100%);
-  color: #d8f8ff;
+  background: linear-gradient(180deg, #184628 0%, #102e1b 100%);
+  color: #e3ffed;
   padding: 10px;
   font-size: 16px;
   font-weight: 700;
@@ -84,23 +110,23 @@ body {
   width: 100vw;
   height: 100vh;
   display: block;
-  background: radial-gradient(circle at center, #10192c 0%, #090d16 100%);
+  background: radial-gradient(circle at center, #22422d 0%, #183121 55%, #102318 100%);
 }
 
 #hud,
 #leaderboard,
-#help {
+#boostHud {
   position: absolute;
-  color: #c8f4ff;
-  text-shadow: 0 0 6px rgba(100, 220, 255, 0.7);
+  color: #e4ffe9;
+  text-shadow: 0 0 6px rgba(130, 255, 186, 0.45);
   user-select: none;
 }
 
 #hud {
   top: 14px;
   left: 14px;
-  background: rgba(6, 10, 18, 0.55);
-  border: 1px solid rgba(118, 181, 255, 0.35);
+  background: rgba(7, 19, 11, 0.58);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
   border-radius: 10px;
   padding: 10px 12px;
   line-height: 1.45;
@@ -110,8 +136,8 @@ body {
 #leaderboard {
   top: 14px;
   right: 14px;
-  background: rgba(6, 10, 18, 0.55);
-  border: 1px solid rgba(118, 181, 255, 0.35);
+  background: rgba(7, 19, 11, 0.58);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 45%, transparent);
   border-radius: 10px;
   padding: 10px 14px;
   min-width: 220px;
@@ -132,14 +158,83 @@ body {
   font-size: 13px;
 }
 
-#help {
+#boostHud {
   bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(6, 10, 18, 0.6);
-  border: 1px solid rgba(118, 181, 255, 0.35);
+  background: rgba(7, 19, 11, 0.62);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 40%, transparent);
+  border-radius: 12px;
+  padding: 9px 12px;
+  display: grid;
+  gap: 8px;
+  min-width: 320px;
+}
+
+#boostMeter {
+  width: 100%;
+  height: 8px;
   border-radius: 999px;
-  padding: 8px 14px;
+  background: rgba(220, 255, 226, 0.15);
+  overflow: hidden;
+}
+
+#boostFill {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: #65f168;
+  transition: width 80ms linear, background-color 150ms ease;
+}
+
+#helpLink {
+  text-align: center;
+  text-decoration: underline;
+  cursor: pointer;
   font-size: 13px;
-  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+#helpOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 8, 4, 0.65);
+}
+
+.help-card {
+  width: min(560px, 92vw);
+  background: rgba(11, 24, 14, 0.96);
+  border: 1px solid color-mix(in srgb, var(--ui-accent) 48%, transparent);
+  border-radius: 14px;
+  padding: 16px;
+  color: #effff3;
+}
+
+.help-card h3 {
+  margin: 0 0 8px;
+}
+
+.help-card ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 7px;
+}
+
+.help-card button {
+  margin-top: 12px;
+}
+
+@media (max-width: 800px) {
+  .title-layout {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  #boostHud {
+    min-width: 260px;
+    width: calc(100vw - 22px);
+  }
 }

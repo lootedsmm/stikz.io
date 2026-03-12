@@ -12,6 +12,12 @@
     return Math.random() * (max - min) + min;
   }
 
+  function lerpAngle(a, b, t) {
+    let diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+    if (diff < -Math.PI) diff += Math.PI * 2;
+    return a + diff * t;
+  }
+
   function randInt(min, max) {
     return Math.floor(randRange(min, max + 1));
   }
@@ -77,6 +83,7 @@
   window.StikzUtils = {
     clamp,
     lerp,
+    lerpAngle,
     randRange,
     randInt,
     distance,
