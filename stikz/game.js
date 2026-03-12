@@ -166,6 +166,22 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
     }
   }
 
+  function spawnCollectParticles(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = U.randRange(0.6, 2.1);
+      state.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: U.randRange(0.2, 0.45),
+        size: U.randRange(1.5, 3.5),
+        color,
+      });
+    }
+  }
+
   function setupWorld() {
     state.orbs = [];
     state.bots = [];
@@ -210,6 +226,14 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
     canvas.addEventListener("mousemove", (e) => { state.mouse.x = e.clientX; state.mouse.y = e.clientY; });
     canvas.addEventListener("mousedown", (e) => { if (e.button === 0) state.mouse.down = true; });
     window.addEventListener("mouseup", (e) => { if (e.button === 0) state.mouse.down = false; });
+
+    canvas.addEventListener("mousedown", (e) => {
+      if (e.button === 0) state.mouse.down = true;
+    });
+
+    window.addEventListener("mouseup", (e) => {
+      if (e.button === 0) state.mouse.down = false;
+    });
 
     playButton.addEventListener("click", startGame);
     playerNameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGame(); });
@@ -357,6 +381,15 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       x: px + Math.cos(entity.aimAngle + Math.PI / 2) * side,
       y: py + Math.sin(entity.aimAngle + Math.PI / 2) * side,
     };
+  }
+
+  function getHandPosition(entity, angle) {
+    const handDir = (entity.handedness || "right") === "left" ? -1 : 1;
+    const sideX = Math.cos(angle + Math.PI / 2) * entity.halfSize * 0.48 * handDir;
+    const sideY = Math.sin(angle + Math.PI / 2) * entity.halfSize * 0.48 * handDir;
+    const frontX = Math.cos(angle) * entity.halfSize * 0.16;
+    const frontY = Math.sin(angle) * entity.halfSize * 0.16;
+    return { x: entity.x + sideX + frontX, y: entity.y + sideY + frontY };
   }
 
   function getSpearTip(entity) {
@@ -604,6 +637,35 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
     ctx.globalAlpha = 1;
   }
 
+  function renderHair(entity, sx, sy, size) {
+    if (entity.hairStyle === "bald") return;
+    const top = sy - size * 0.52;
+
+    ctx.fillStyle = "#4c2e18";
+    if (entity.hairStyle === "short") {
+      ctx.fillRect(sx - size * 0.32, top, size * 0.64, size * 0.24);
+    } else if (entity.hairStyle === "messy") {
+      ctx.beginPath();
+      ctx.moveTo(sx - size * 0.32, top + size * 0.2);
+      ctx.lineTo(sx - size * 0.1, top - size * 0.08);
+      ctx.lineTo(sx + size * 0.05, top + size * 0.11);
+      ctx.lineTo(sx + size * 0.18, top - size * 0.05);
+      ctx.lineTo(sx + size * 0.32, top + size * 0.2);
+      ctx.closePath();
+      ctx.fill();
+    } else if (entity.hairStyle === "spiky") {
+      for (let i = -2; i <= 2; i++) {
+        const x = sx + i * size * 0.14;
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.06, top + size * 0.2);
+        ctx.lineTo(x, top - size * 0.16);
+        ctx.lineTo(x + size * 0.06, top + size * 0.2);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
   function renderEntity(entity) {
     if (!entity.alive || entity.eliminated) return;
     const s = worldToScreen(entity.x, entity.y);
@@ -754,6 +816,7 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
 
   bindInput();
   resizeCanvas();
+  document.documentElement.style.setProperty("--ui-accent", state.settings.uiColor);
   requestAnimationFrame((t) => {
     state.lastTime = t;
     tick(t);
