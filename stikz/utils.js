@@ -13,9 +13,20 @@
   }
 
   function lerpAngle(a, b, t) {
+    return a + angleDelta(a, b) * t;
+  }
+
+
+  function angleDelta(a, b) {
     let diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
     if (diff < -Math.PI) diff += Math.PI * 2;
-    return a + diff * t;
+    return diff;
+  }
+
+  function rotateToward(current, target, maxStep) {
+    const diff = angleDelta(current, target);
+    if (Math.abs(diff) <= maxStep) return target;
+    return current + Math.sign(diff) * maxStep;
   }
 
   function randInt(min, max) {
@@ -84,6 +95,8 @@
     clamp,
     lerp,
     lerpAngle,
+    angleDelta,
+    rotateToward,
     randRange,
     randInt,
     distance,
