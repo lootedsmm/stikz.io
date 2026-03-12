@@ -8,18 +8,33 @@
 </head>
 <body>
   <div id="titleScreen">
-    <div class="title-card">
-      <h1>STIKZ</h1>
-      <label for="playerNameInput">Name:</label>
-      <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name" />
+    <div class="title-layout">
+      <aside class="customization-card">
+        <h2>Customization</h2>
+        <label for="nameColorInput">Name Color</label>
+        <input id="nameColorInput" type="color" value="#dfffea" />
 
-      <fieldset>
-        <legend>Mode:</legend>
-        <label><input type="radio" name="mode" value="classic" checked /> Classic</label>
-        <label><input type="radio" name="mode" value="pinpoint" /> Pinpoint</label>
-      </fieldset>
+        <label for="spearColorInput">Spear Color</label>
+        <input id="spearColorInput" type="color" value="#f3f8ff" />
 
-      <button id="playButton" type="button">Play</button>
+        <label for="skinColorInput">Skin Color</label>
+        <input id="skinColorInput" type="color" value="#f3c592" />
+      </aside>
+
+      <div class="title-card">
+        <h1>STIKZ</h1>
+        <label for="playerNameInput">Name:</label>
+        <input id="playerNameInput" type="text" maxlength="20" placeholder="Enter your name" />
+
+        <fieldset>
+          <legend>Mode:</legend>
+          <label><input type="radio" name="mode" value="classic" checked /> Classic</label>
+          <label><input type="radio" name="mode" value="pinpoint" /> Pinpoint</label>
+          <label><input type="radio" name="mode" value="battle-royale" /> Battle Royale</label>
+        </fieldset>
+
+        <button id="playButton" type="button">PLAY</button>
+      </div>
     </div>
   </div>
 
@@ -29,13 +44,44 @@
       <div><strong>Name:</strong> <span id="nameValue">You</span></div>
       <div><strong>Mode:</strong> <span id="modeValue">Classic</span></div>
       <div><strong>Kills:</strong> <span id="killsValue">0</span></div>
-      <div><strong>Spear Length:</strong> <span id="spearValue">0</span></div>
+      <div><strong>Score:</strong> <span id="scoreValue">0</span></div>
+      <div><strong>Lives:</strong> <span id="livesValue">❤ ❤ ❤</span></div>
     </div>
+
     <div id="leaderboard">
       <h3>Leaderboard</h3>
       <ol id="leaderboardList"></ol>
     </div>
-    <div id="help">WASD to move • Aim with mouse • Spear anyone in Classic, tip-only in Pinpoint</div>
+
+    <div id="boostHud">
+      <div id="boostMeter"><div id="boostFill"></div></div>
+      <div id="helpLink" role="button" tabindex="0">Help</div>
+    </div>
+
+    <div id="helpOverlay" class="hidden" role="dialog" aria-modal="true">
+      <div class="help-card">
+        <h3>How to Play</h3>
+        <ul>
+          <li><strong>Move:</strong> WASD</li>
+          <li><strong>Aim:</strong> Mouse</li>
+          <li><strong>Boost:</strong> Hold Left Click or Spacebar</li>
+          <li><strong>Natural Orbs:</strong> give boost only</li>
+          <li><strong>Blood Orbs:</strong> dropped on kills, give boost + score</li>
+          <li><strong>Classic:</strong> full spear hit kills</li>
+          <li><strong>Pinpoint:</strong> tip-only kills</li>
+          <li><strong>Battle Royale:</strong> classic spear rules, shrinking zone, 3 lives</li>
+        </ul>
+        <button id="closeHelpButton" type="button">Close</button>
+      </div>
+    </div>
+
+    <div id="pauseOverlay" class="hidden" role="dialog" aria-modal="true">
+      <div class="pause-card">
+        <h3>Paused</h3>
+        <button id="resumeButton" type="button">Resume</button>
+        <button id="leaveButton" type="button">Leave to Title</button>
+      </div>
+    </div>
   </div>
 
   <script src="utils.js"></script>
