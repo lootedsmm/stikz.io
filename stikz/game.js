@@ -2,12 +2,12 @@ const CONFIG = {
   arenaSize: 4000,
   playerSpeed: 4,
   botSpeed: 3,
-  playerRadius: 20,
   orbCount: 200,
-  orbValue: 1,
+  orbSpearGain: 4,
+  killSpearGain: 24,
   spearBaseLength: 60,
-  spearGrowthFactor: 3,
-  spearMaxLength: 250,
+  spearMaxLength: 330,
+  spearDisplayMax: 999,
   botCount: 15,
   respawnTime: 3000,
   orbRadius: 6,
@@ -16,10 +16,17 @@ const CONFIG = {
   botAcceleration: 0.3,
   playerFriction: 0.88,
   botFriction: 0.92,
-  killScore: 8,
   deathDropOrbs: 8,
   gridSize: 80,
+  mode: {
+    classic: "classic",
+    pinpoint: "pinpoint",
+  },
 };
+
+// Player and bot are now squares sized to 40% of one grid cell.
+CONFIG.playerSize = CONFIG.gridSize * 0.4;
+CONFIG.playerHalfSize = CONFIG.playerSize / 2;
 
 (() => {
   const U = window.StikzUtils;
@@ -28,12 +35,20 @@ const CONFIG = {
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
 
-  const scoreValue = document.getElementById("scoreValue");
+  const titleScreen = document.getElementById("titleScreen");
+  const gameShell = document.getElementById("game-shell");
+  const playerNameInput = document.getElementById("playerNameInput");
+  const playButton = document.getElementById("playButton");
+
+  const nameValue = document.getElementById("nameValue");
+  const modeValue = document.getElementById("modeValue");
   const killsValue = document.getElementById("killsValue");
   const spearValue = document.getElementById("spearValue");
   const leaderboardList = document.getElementById("leaderboardList");
 
   const state = {
+    started: false,
+    mode: CONFIG.mode.classic,
     keys: { w: false, a: false, s: false, d: false },
     mouse: { x: 0, y: 0 },
     camera: { x: 0, y: 0 },
@@ -53,8 +68,8 @@ const CONFIG = {
       y: spawn.y,
       vx: 0,
       vy: 0,
-      radius: CONFIG.playerRadius,
-      score: 0,
+      halfSize: CONFIG.playerHalfSize,
+      spearLength: CONFIG.spearBaseLength,
       kills: 0,
       alive: true,
       respawnAt: 0,
@@ -64,12 +79,21 @@ const CONFIG = {
     };
   }
 
-  function getSpearLength(entity) {
-    return U.clamp(
-      CONFIG.spearBaseLength + entity.score * CONFIG.spearGrowthFactor,
-      CONFIG.spearBaseLength,
-      CONFIG.spearMaxLength
-    );
+  function getDisplaySpearLength(entity) {
+    return Math.floor((entity.spearLength / CONFIG.spearMaxLength) * CONFIG.spearDisplayMax);
+  }
+
+  function growSpear(entity, gain) {
+    entity.spearLength = U.clamp(entity.spearLength + gain, 0, CONFIG.spearMaxLength);
+  }
+
+  function getEntityRect(entity) {
+    return {
+      left: entity.x - entity.halfSize,
+      right: entity.x + entity.halfSize,
+      top: entity.y - entity.halfSize,
+      bottom: entity.y + entity.halfSize,
+    };
   }
 
   function spawnOrb(x = null, y = null) {
@@ -85,10 +109,9 @@ const CONFIG = {
 
     if (killer) {
       killer.kills += 1;
-      killer.score += CONFIG.killScore;
+      growSpear(killer, CONFIG.killSpearGain);
     }
 
-    // Death drops create short-term hotspots and keep the arena populated.
     for (let i = 0; i < CONFIG.deathDropOrbs; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = U.randRange(10, 50);
@@ -104,7 +127,7 @@ const CONFIG = {
     const spawn = U.randomPosition(CONFIG.arenaSize, 80);
     entity.x = spawn.x;
     entity.y = spawn.y;
-    entity.score = 0;
+    entity.spearLength = CONFIG.spearBaseLength;
     entity.vx = 0;
     entity.vy = 0;
     entity.alive = true;
@@ -129,6 +152,8 @@ const CONFIG = {
   }
 
   function setupWorld() {
+    state.orbs = [];
+    state.bots = [];
     for (let i = 0; i < CONFIG.orbCount; i++) spawnOrb();
     for (let i = 0; i < CONFIG.botCount; i++) state.bots.push(B.createBot(i, CONFIG));
     resizeCanvas();
@@ -155,7 +180,33 @@ const CONFIG = {
       state.mouse.y = e.clientY;
     });
 
+    playButton.addEventListener("click", startGame);
+    playerNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") startGame();
+    });
+
     window.addEventListener("resize", resizeCanvas);
+  }
+
+  function startGame() {
+    const selectedMode = document.querySelector('input[name="mode"]:checked')?.value || CONFIG.mode.classic;
+    state.mode = selectedMode;
+
+    const inputName = playerNameInput.value.trim();
+    state.player.name = inputName || "You";
+    nameValue.textContent = state.player.name;
+    modeValue.textContent = state.mode === CONFIG.mode.pinpoint ? "Pinpoint" : "Classic";
+
+    state.player = createEntity(state.player.name, "#64f7ff");
+    state.player.name = inputName || "You";
+    state.camera.x = state.player.x;
+    state.camera.y = state.player.y;
+
+    setupWorld();
+    state.started = true;
+    titleScreen.classList.add("hidden");
+    gameShell.classList.remove("hidden");
+    canvas.focus();
   }
 
   function updatePlayer(dt) {
@@ -166,17 +217,16 @@ const CONFIG = {
     const inputY = (state.keys.s ? 1 : 0) - (state.keys.w ? 1 : 0);
     const dir = U.normalize(inputX, inputY);
 
-    p.vx += dir.x * CONFIG.playerAcceleration;
-    p.vy += dir.y * CONFIG.playerAcceleration;
+    p.vx += dir.x * CONFIG.playerAcceleration * dt * 60;
+    p.vy += dir.y * CONFIG.playerAcceleration * dt * 60;
 
     const limited = U.limitVector(p.vx, p.vy, CONFIG.playerSpeed);
     p.vx = limited.x * CONFIG.playerFriction;
     p.vy = limited.y * CONFIG.playerFriction;
 
-    p.x = U.clamp(p.x + p.vx * dt * 60, p.radius, CONFIG.arenaSize - p.radius);
-    p.y = U.clamp(p.y + p.vy * dt * 60, p.radius, CONFIG.arenaSize - p.radius);
+    p.x = U.clamp(p.x + p.vx * dt * 60, p.halfSize, CONFIG.arenaSize - p.halfSize);
+    p.y = U.clamp(p.y + p.vy * dt * 60, p.halfSize, CONFIG.arenaSize - p.halfSize);
 
-    // Convert cursor from screen space to world space for spear aiming.
     p.aimX = state.mouse.x + state.camera.x - canvas.width / 2;
     p.aimY = state.mouse.y + state.camera.y - canvas.height / 2;
   }
@@ -211,14 +261,14 @@ const CONFIG = {
 
       for (const e of entities) {
         if (!e.alive) continue;
-        if (U.distance(orb.x, orb.y, e.x, e.y) < e.radius + orb.r + 2) {
+        if (U.distance(orb.x, orb.y, e.x, e.y) < e.halfSize + orb.r + 2) {
           collectedBy = e;
           break;
         }
       }
 
       if (collectedBy) {
-        collectedBy.score += CONFIG.orbValue;
+        growSpear(collectedBy, CONFIG.orbSpearGain);
         state.orbs.splice(i, 1);
         spawnOrb();
       }
@@ -226,9 +276,8 @@ const CONFIG = {
   }
 
   function getSpearTip(entity) {
-    // Spear math: start at player center and extend a fixed length in aim direction.
     const dir = U.normalize(entity.aimX - entity.x, entity.aimY - entity.y);
-    const len = entity.id !== undefined ? B.getBotSpearLength(entity, CONFIG) : getSpearLength(entity);
+    const len = entity.spearLength;
     return {
       x: entity.x + dir.x * len,
       y: entity.y + dir.y * len,
@@ -237,23 +286,29 @@ const CONFIG = {
     };
   }
 
+  function spearHitsEntity(attacker, target) {
+    const tip = getSpearTip(attacker);
+    const rect = getEntityRect(target);
+
+    if (state.mode === CONFIG.mode.pinpoint) {
+      return U.pointInRect(tip.x, tip.y, rect);
+    }
+
+    return U.lineIntersectsRect(attacker.x, attacker.y, tip.x, tip.y, rect);
+  }
+
   function checkCombat() {
     const attackers = [state.player, ...state.bots].filter((e) => e.alive);
 
-    // Collision detection: if spear tip enters target circle, target dies.
     for (const attacker of attackers) {
-      const tip = getSpearTip(attacker);
-
-      if (state.player.alive && attacker !== state.player) {
-        if (U.distance(tip.x, tip.y, state.player.x, state.player.y) < state.player.radius) {
-          killEntity(state.player, attacker);
-          continue;
-        }
+      if (state.player.alive && attacker !== state.player && spearHitsEntity(attacker, state.player)) {
+        killEntity(state.player, attacker);
+        continue;
       }
 
       for (const bot of state.bots) {
         if (!bot.alive || bot === attacker) continue;
-        if (U.distance(tip.x, tip.y, bot.x, bot.y) < bot.radius) {
+        if (spearHitsEntity(attacker, bot)) {
           killEntity(bot, attacker);
         }
       }
@@ -273,7 +328,6 @@ const CONFIG = {
   }
 
   function updateCamera(dt) {
-    // Camera follows player smoothly. When dead, it stays on last known location.
     const targetX = state.player.x;
     const targetY = state.player.y;
     state.camera.x = U.lerp(state.camera.x, targetX, Math.min(1, dt * 8));
@@ -330,12 +384,11 @@ const CONFIG = {
     if (!entity.alive) return;
     const s = worldToScreen(entity.x, entity.y);
 
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, entity.radius, 0, Math.PI * 2);
     ctx.fillStyle = entity.color;
     ctx.shadowColor = entity.color;
     ctx.shadowBlur = 20;
-    ctx.fill();
+    const size = entity.halfSize * 2;
+    ctx.fillRect(s.x - entity.halfSize, s.y - entity.halfSize, size, size);
     ctx.shadowBlur = 0;
 
     const tip = getSpearTip(entity);
@@ -381,21 +434,26 @@ const CONFIG = {
   }
 
   function updateHUD() {
-    scoreValue.textContent = state.player.score;
+    nameValue.textContent = state.player.name;
     killsValue.textContent = state.player.kills;
-    spearValue.textContent = Math.floor(getSpearLength(state.player));
+    spearValue.textContent = getDisplaySpearLength(state.player);
 
     const board = [state.player, ...state.bots]
-      .map((e) => ({ name: e.name, score: e.score, kills: e.kills }))
-      .sort((a, b) => b.score - a.score)
+      .map((e) => ({ name: e.name, kills: e.kills, spear: getDisplaySpearLength(e) }))
+      .sort((a, b) => b.kills - a.kills || b.spear - a.spear)
       .slice(0, 6);
 
     leaderboardList.innerHTML = board
-      .map((e) => `<li>${e.name}: ${e.score} (${e.kills} K)</li>`)
+      .map((e) => `<li>${e.name}: ${e.kills} K • ${e.spear} S</li>`)
       .join("");
   }
 
   function tick(time) {
+    if (!state.started) {
+      requestAnimationFrame(tick);
+      return;
+    }
+
     const dt = Math.min(CONFIG.maxDelta, (time - state.lastTime) / 1000 || 0.016);
     state.lastTime = time;
 
@@ -419,7 +477,7 @@ const CONFIG = {
   }
 
   bindInput();
-  setupWorld();
+  resizeCanvas();
   requestAnimationFrame((t) => {
     state.lastTime = t;
     tick(t);

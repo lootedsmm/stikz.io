@@ -1,4 +1,4 @@
-// Bot AI factory and update logic.
+// Bot AI and update logic.
 (function () {
   const U = window.StikzUtils;
 
@@ -11,10 +11,10 @@
       y: spawn.y,
       vx: 0,
       vy: 0,
-      radius: config.playerRadius,
+      halfSize: config.playerHalfSize,
       speed: config.botSpeed,
       color: `hsl(${(id * 47) % 360}, 75%, 60%)`,
-      score: 0,
+      spearLength: config.spearBaseLength,
       kills: 0,
       alive: true,
       respawnAt: 0,
@@ -31,12 +31,11 @@
     bot.decisionTimer -= dt;
     if (bot.decisionTimer > 0) return;
 
-    bot.decisionTimer = U.randRange(0.4, 1.2);
+    bot.decisionTimer = U.randRange(0.4, 0.95);
     const roll = Math.random();
 
-    if (roll < 0.45 && state.orbs.length > 0) {
-      // Chase nearest orb sometimes to grow.
-      const orb = findNearestOrb(bot, state.orbs, 700);
+    if (roll < 0.5 && state.orbs.length > 0) {
+      const orb = findNearestOrb(bot, state.orbs, 850);
       if (orb) {
         bot.targetType = "orb";
         bot.targetId = orb.id;
@@ -45,9 +44,8 @@
     }
 
     if (roll < 0.85) {
-      // Chase nearest enemy when reasonably close.
       const enemy = findNearestEnemy(bot, state);
-      if (enemy && enemy.dist < 550) {
+      if (enemy && enemy.dist < 650) {
         bot.targetType = enemy.type;
         bot.targetId = enemy.id;
         return;
@@ -56,15 +54,7 @@
 
     bot.targetType = "wander";
     bot.targetId = null;
-    bot.wanderAngle += U.randRange(-1.0, 1.0);
-  }
-
-  function getBotSpearLength(bot, config) {
-    return U.clamp(
-      config.spearBaseLength + bot.score * config.spearGrowthFactor,
-      config.spearBaseLength,
-      config.spearMaxLength
-    );
+    bot.wanderAngle += U.randRange(-1.25, 1.25);
   }
 
   function updateBot(bot, state, dt, config) {
@@ -79,8 +69,8 @@
       const orb = state.orbs.find((o) => o.id === bot.targetId);
       if (orb) {
         const n = U.normalize(orb.x - bot.x, orb.y - bot.y);
-        steerX += n.x;
-        steerY += n.y;
+        steerX += n.x * 1.35;
+        steerY += n.y * 1.35;
       } else {
         bot.targetType = "wander";
       }
@@ -98,8 +88,6 @@
         const toTarget = U.normalize(target.x - bot.x, target.y - bot.y);
         steerX += toTarget.x * 1.1;
         steerY += toTarget.y * 1.1;
-
-        // Aim spear directly at nearby enemies to make bots feel aggressive.
         bot.aimX = target.x;
         bot.aimY = target.y;
       } else {
@@ -108,31 +96,27 @@
     }
 
     if (bot.targetType === "wander") {
-      // Light wandering motion so bots constantly roam.
-      bot.wanderAngle += U.randRange(-0.6, 0.6) * dt;
-      steerX += Math.cos(bot.wanderAngle) * 0.8;
-      steerY += Math.sin(bot.wanderAngle) * 0.8;
+      bot.wanderAngle += U.randRange(-0.9, 0.9) * dt;
+      steerX += Math.cos(bot.wanderAngle);
+      steerY += Math.sin(bot.wanderAngle);
     }
 
-    // Keep bots inside map with a soft center pull when near edges.
-    const borderPad = 120;
-    if (bot.x < borderPad) steerX += 1;
-    if (bot.x > config.arenaSize - borderPad) steerX -= 1;
-    if (bot.y < borderPad) steerY += 1;
-    if (bot.y > config.arenaSize - borderPad) steerY -= 1;
+    const borderPad = 180;
+    if (bot.x < borderPad) steerX += 1.5;
+    if (bot.x > config.arenaSize - borderPad) steerX -= 1.5;
+    if (bot.y < borderPad) steerY += 1.5;
+    if (bot.y > config.arenaSize - borderPad) steerY -= 1.5;
 
     const steer = U.normalize(steerX, steerY);
-    const accel = config.botAcceleration;
-
-    bot.vx += steer.x * accel * dt;
-    bot.vy += steer.y * accel * dt;
+    bot.vx += steer.x * config.botAcceleration * dt * 60;
+    bot.vy += steer.y * config.botAcceleration * dt * 60;
 
     const limited = U.limitVector(bot.vx, bot.vy, bot.speed);
     bot.vx = limited.x * config.botFriction;
     bot.vy = limited.y * config.botFriction;
 
-    bot.x = U.clamp(bot.x + bot.vx * dt * 60, bot.radius, config.arenaSize - bot.radius);
-    bot.y = U.clamp(bot.y + bot.vy * dt * 60, bot.radius, config.arenaSize - bot.radius);
+    bot.x = U.clamp(bot.x + bot.vx * dt * 60, bot.halfSize, config.arenaSize - bot.halfSize);
+    bot.y = U.clamp(bot.y + bot.vy * dt * 60, bot.halfSize, config.arenaSize - bot.halfSize);
 
     if (bot.targetType === "wander") {
       bot.aimX = bot.x + Math.cos(bot.wanderAngle) * 200;
@@ -175,6 +159,5 @@
   window.StikzBots = {
     createBot,
     updateBot,
-    getBotSpearLength,
   };
 })();

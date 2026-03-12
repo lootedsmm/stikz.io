@@ -16,6 +16,64 @@ body {
   overflow: hidden;
 }
 
+.hidden {
+  display: none !important;
+}
+
+#titleScreen {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at center, #10192c 0%, #090d16 100%);
+  color: #c8f4ff;
+}
+
+.title-card {
+  width: min(360px, 90vw);
+  background: rgba(6, 10, 18, 0.82);
+  border: 1px solid rgba(118, 181, 255, 0.4);
+  border-radius: 14px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 0 24px rgba(90, 202, 255, 0.2);
+}
+
+.title-card h1 {
+  margin: 2px 0 10px;
+  text-align: center;
+  letter-spacing: 6px;
+}
+
+.title-card input[type="text"] {
+  width: 100%;
+  background: rgba(8, 15, 24, 0.9);
+  border: 1px solid rgba(118, 181, 255, 0.35);
+  color: #dbf8ff;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.title-card fieldset {
+  margin: 4px 0 0;
+  border: 1px solid rgba(118, 181, 255, 0.35);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.title-card button {
+  border: 1px solid rgba(118, 181, 255, 0.45);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #123253 0%, #0d233c 100%);
+  color: #d8f8ff;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 #game-shell {
   position: relative;
   width: 100%;
@@ -46,7 +104,7 @@ body {
   border-radius: 10px;
   padding: 10px 12px;
   line-height: 1.45;
-  min-width: 190px;
+  min-width: 220px;
 }
 
 #leaderboard {
@@ -56,7 +114,7 @@ body {
   border: 1px solid rgba(118, 181, 255, 0.35);
   border-radius: 10px;
   padding: 10px 14px;
-  min-width: 180px;
+  min-width: 220px;
 }
 
 #leaderboard h3 {
