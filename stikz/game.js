@@ -89,10 +89,10 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       spearColor: spearColorInput.value,
       skinColor: skinColorInput.value,
     },
-    player: createEntity("You", true),
+    player: null,
   };
 
-  function createEntity(name, isPlayer = false) {
+  function createEntity(name, isPlayer = false, settings = state.settings) {
     const spawn = U.randomPosition(CONFIG.arenaSize, 90);
     const angle = Math.random() * Math.PI * 2;
     return {
@@ -102,9 +102,9 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       vx: 0,
       vy: 0,
       halfSize: CONFIG.playerHalfSize,
-      color: isPlayer ? state.settings.skinColor : "#9ca6a8",
-      spearColor: isPlayer ? state.settings.spearColor : "#f3f8ff",
-      nameColor: isPlayer ? state.settings.nameColor : "#e5ffee",
+      color: isPlayer ? settings.skinColor : "#9ca6a8",
+      spearColor: isPlayer ? settings.spearColor : "#f3f8ff",
+      nameColor: isPlayer ? settings.nameColor : "#e5ffee",
       aimAngle: angle,
       targetAimAngle: angle,
       currentMoveAngle: angle,
@@ -124,6 +124,8 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       botTagColor: "#fff",
     };
   }
+
+  state.player = createEntity("You", true, state.settings);
 
   function setSpearFromScore(entity) {
     const t = entity.score / (entity.score + 220);
@@ -163,22 +165,6 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       if (r < 0.45) state.decorations.push({ type: "grass", x: p.x, y: p.y, s: U.randRange(16, 30) });
       else if (r < 0.75) state.decorations.push({ type: "rock", x: p.x, y: p.y, s: U.randRange(9, 18), rot: U.randRange(0, Math.PI * 2) });
       else state.decorations.push({ type: "flower", x: p.x, y: p.y, s: U.randRange(7, 11), c: NATURAL_COLORS[U.randInt(0, NATURAL_COLORS.length - 1)] });
-    }
-  }
-
-  function spawnCollectParticles(x, y, color) {
-    for (let i = 0; i < 8; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = U.randRange(0.6, 2.1);
-      state.particles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: U.randRange(0.2, 0.45),
-        size: U.randRange(1.5, 3.5),
-        color,
-      });
     }
   }
 
@@ -226,14 +212,6 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
     canvas.addEventListener("mousemove", (e) => { state.mouse.x = e.clientX; state.mouse.y = e.clientY; });
     canvas.addEventListener("mousedown", (e) => { if (e.button === 0) state.mouse.down = true; });
     window.addEventListener("mouseup", (e) => { if (e.button === 0) state.mouse.down = false; });
-
-    canvas.addEventListener("mousedown", (e) => {
-      if (e.button === 0) state.mouse.down = true;
-    });
-
-    window.addEventListener("mouseup", (e) => {
-      if (e.button === 0) state.mouse.down = false;
-    });
 
     playButton.addEventListener("click", startGame);
     playerNameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startGame(); });
@@ -381,15 +359,6 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       x: px + Math.cos(entity.aimAngle + Math.PI / 2) * side,
       y: py + Math.sin(entity.aimAngle + Math.PI / 2) * side,
     };
-  }
-
-  function getHandPosition(entity, angle) {
-    const handDir = (entity.handedness || "right") === "left" ? -1 : 1;
-    const sideX = Math.cos(angle + Math.PI / 2) * entity.halfSize * 0.48 * handDir;
-    const sideY = Math.sin(angle + Math.PI / 2) * entity.halfSize * 0.48 * handDir;
-    const frontX = Math.cos(angle) * entity.halfSize * 0.16;
-    const frontY = Math.sin(angle) * entity.halfSize * 0.16;
-    return { x: entity.x + sideX + frontX, y: entity.y + sideY + frontY };
   }
 
   function getSpearTip(entity) {
@@ -622,6 +591,7 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
+    ctx.globalAlpha = 1;
   }
 
   function renderTrails() {
@@ -635,35 +605,6 @@ CONFIG.playerHalfSize = CONFIG.playerSize / 2;
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-  }
-
-  function renderHair(entity, sx, sy, size) {
-    if (entity.hairStyle === "bald") return;
-    const top = sy - size * 0.52;
-
-    ctx.fillStyle = "#4c2e18";
-    if (entity.hairStyle === "short") {
-      ctx.fillRect(sx - size * 0.32, top, size * 0.64, size * 0.24);
-    } else if (entity.hairStyle === "messy") {
-      ctx.beginPath();
-      ctx.moveTo(sx - size * 0.32, top + size * 0.2);
-      ctx.lineTo(sx - size * 0.1, top - size * 0.08);
-      ctx.lineTo(sx + size * 0.05, top + size * 0.11);
-      ctx.lineTo(sx + size * 0.18, top - size * 0.05);
-      ctx.lineTo(sx + size * 0.32, top + size * 0.2);
-      ctx.closePath();
-      ctx.fill();
-    } else if (entity.hairStyle === "spiky") {
-      for (let i = -2; i <= 2; i++) {
-        const x = sx + i * size * 0.14;
-        ctx.beginPath();
-        ctx.moveTo(x - size * 0.06, top + size * 0.2);
-        ctx.lineTo(x, top - size * 0.16);
-        ctx.lineTo(x + size * 0.06, top + size * 0.2);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
   }
 
   function renderEntity(entity) {
